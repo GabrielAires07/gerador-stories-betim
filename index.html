@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador de Stories de Fretes — Betim Transportes</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Montserrat (Ultra Bold, Bold, Medium) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,500;0,600;0,700;0,800;0,900;1,800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Montserrat', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fffbe6',
+              100: '#fff3b3',
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706',
+              900: '#451a03',
+            },
+            emeraldBrand: {
+              500: '#10b981',
+              600: '#059669',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: #0b0f19;
+      color: #f1f5f9;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* WhatsApp Safe Zone Lines Overlay for HTML Previews */
+    .safe-zone-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 20;
+    }
+    .safe-zone-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 10%; /* ~190px on 1920px */
+      border-bottom: 2px dashed rgba(239, 68, 68, 0.7);
+      background: rgba(239, 68, 68, 0.08);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 4px;
+    }
+    .safe-zone-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 13.5%; /* ~260px on 1920px */
+      border-top: 2px dashed rgba(239, 68, 68, 0.7);
+      background: rgba(239, 68, 68, 0.08);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 4px;
+    }
+    .safe-zone-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: #ef4444;
+      background: rgba(0,0,0,0.7);
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TOP HEADER -->
+  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-emerald-500 flex items-center justify-center text-slate-950 font-black text-xl shadow-md">
+          🚛
+        </div>
+        <div>
+          <h1 class="text-lg font-black tracking-tight text-white flex items-center gap-2">
+            Betim Transportes
+            <span class="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-bold">
+              Gerador de Stories 1080x1920
+            </span>
+          </h1>
+          <p class="text-xs text-slate-400 hidden sm:block">Conversor instantâneo de texto do WhatsApp para imagens de Status</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <button id="btn-quick-help" onclick="toggleHelpModal()" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span class="hidden md:inline">Como Funciona?</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- LEFT COLUMN: CONTROLS & PARSER (lg:col-span-5) -->
+    <section class="lg:col-span-5 flex flex-col space-y-5">
+
+      <!-- PARSER CARD -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-bold text-slate-200">
+            Cole a Mensagem do WhatsApp
+          </label>
+          <span id="parser-badge" class="text-xs bg-slate-800 text-amber-400 font-semibold px-2.5 py-1 rounded-full border border-slate-700">
+            0 fretes detectados
+          </span>
+        </div>
+
+        <!-- Textarea -->
+        <div class="relative">
+          <textarea id="whatsapp-input" rows="11" 
+            class="w-full bg-slate-950 border border-slate-700/80 rounded-xl p-3.5 text-xs text-slate-200 font-mono leading-relaxed focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition resize-y"
+            placeholder="Cole aqui o texto com a lista de fretes..."></textarea>
+        </div>
+
+        <!-- Quick Action Buttons -->
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="pasteClipboard()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold py-2 px-2 rounded-lg border border-slate-700 flex items-center justify-center gap-1.5 transition">
+            <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+            Colar Texto
+          </button>
+
+          <button onclick="clearText()" class="bg-slate-800 hover:bg-rose-950/60 text-slate-300 hover:text-rose-300 text-xs font-semibold py-2 px-2 rounded-lg border border-slate-700 hover:border-rose-800/60 flex items-center justify-center gap-1 transition">
+            <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            Limpar
+          </button>
+        </div>
+
+        <!-- Parser Summary Card -->
+        <div id="parser-summary-box" class="bg-slate-950/70 border border-slate-800 rounded-xl p-3 text-xs space-y-1.5">
+          <div class="flex items-center justify-between text-slate-400">
+            <span>Empresa detectada:</span>
+            <span id="summary-empresa" class="font-bold text-slate-200">BETIM TRANSPORTES</span>
+          </div>
+          <div class="flex items-center justify-between text-slate-400">
+            <span>Filial:</span>
+            <span id="summary-filial" class="font-semibold text-amber-400">Uberaba-MG</span>
+          </div>
+          <div class="flex items-center justify-between text-slate-400">
+            <span>Agenciadores encontrados:</span>
+            <span id="summary-contatos" class="font-bold text-emerald-400">4 contatos</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- DESIGN & PERSONALIZATION CARD -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-5">
+        <h3 class="text-sm font-bold text-slate-200">
+          Personalização dos Stories
+        </h3>
+
+        <!-- Logo Upload -->
+        <div class="space-y-2">
+          <label class="text-xs font-semibold text-slate-300 block">Logo da Transportadora (Automática / Opcional):</label>
+          <div class="flex items-center gap-3">
+            <label class="flex-1 cursor-pointer bg-slate-950 hover:bg-slate-800 border border-dashed border-slate-700 hover:border-amber-500 rounded-xl p-2.5 text-center transition flex items-center justify-center gap-2 text-xs text-slate-400">
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+              <span id="logo-status-text">Subir Imagem da Logo</span>
+              <input type="file" id="logo-input" accept="image/*" class="hidden" onchange="handleLogoUpload(event)">
+            </label>
+
+            <button id="btn-remove-logo" onclick="removeLogo()" class="hidden bg-rose-950/60 hover:bg-rose-900 border border-rose-800/80 text-rose-300 text-xs px-3 py-2.5 rounded-xl font-medium transition">
+              Remover
+            </button>
+          </div>
+          <p class="text-[10px] text-slate-500">Carrega automaticamente logo.png ou logo.jpg da mesma pasta. Você também pode enviar outra manualmente.</p>
+        </div>
+
+        <!-- Theme Selector -->
+        <div class="space-y-2">
+          <label class="text-xs font-semibold text-slate-300 block">Tema de Fundo:</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button onclick="setTheme('dark')" id="theme-btn-dark" class="theme-btn active p-2.5 rounded-xl border border-amber-500 bg-slate-950 hover:bg-slate-800 text-left transition space-y-1">
+              <div class="w-full h-4 rounded bg-gradient-to-r from-[#141518] to-[#08090B] border border-zinc-700"></div>
+              <span class="text-[11px] font-bold block text-slate-200">Dark</span>
+            </button>
+
+            <button onclick="setTheme('escuro')" id="theme-btn-escuro" class="theme-btn p-2.5 rounded-xl border border-slate-700 bg-slate-950 hover:bg-slate-800 text-left transition space-y-1">
+              <div class="w-full h-4 rounded bg-gradient-to-r from-slate-900 to-slate-950 border border-slate-700"></div>
+              <span class="text-[11px] font-bold block text-slate-200">Escuro</span>
+            </button>
+
+            <button onclick="setTheme('azul')" id="theme-btn-azul" class="theme-btn p-2.5 rounded-xl border border-slate-700 bg-slate-950 hover:bg-slate-800 text-left transition space-y-1">
+              <div class="w-full h-4 rounded bg-gradient-to-r from-blue-950 to-slate-900 border border-blue-800"></div>
+              <span class="text-[11px] font-bold block text-slate-200">Azul Corp</span>
+            </button>
+
+            <button onclick="setTheme('claro')" id="theme-btn-claro" class="theme-btn p-2.5 rounded-xl border border-slate-700 bg-slate-950 hover:bg-slate-800 text-left transition space-y-1">
+              <div class="w-full h-4 rounded bg-gradient-to-r from-slate-100 to-slate-300 border border-slate-400"></div>
+              <span class="text-[11px] font-bold block text-slate-200">Claro</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Color Mode & Auto Detect -->
+        <div class="space-y-3 pt-1 border-t border-slate-800">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-semibold text-slate-300 flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" id="chk-auto-colors" checked onchange="toggleAutoColors()" class="rounded border-slate-700 text-amber-500 focus:ring-amber-500 bg-slate-950 w-4 h-4">
+              Cores Automáticas por Carroceria
+            </label>
+          </div>
+          <div class="flex items-center gap-2 text-[11px] text-slate-400 pl-5">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold">🌾 Graneleiro (Verde)</span>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-800 font-bold">🪨 Caçamba (Laranja)</span>
+          </div>
+
+          <!-- Custom Color Picker (Disabled if Auto is checked) -->
+          <div id="custom-color-container" class="hidden items-center justify-between pt-1">
+            <span class="text-xs text-slate-400">Cor de Destaque Fixa:</span>
+            <input type="color" id="custom-color-picker" value="#10b981" onchange="renderAllCards()" class="w-8 h-8 rounded border-0 cursor-pointer bg-transparent">
+          </div>
+        </div>
+
+        <!-- WhatsApp Safe Zone Overlay Checkbox -->
+        <div class="pt-2 border-t border-slate-800">
+          <label class="flex items-center gap-2 text-xs font-semibold text-slate-300 cursor-pointer">
+            <input type="checkbox" id="chk-safe-zone" onchange="toggleSafeZoneOverlay()" class="rounded border-slate-700 text-emerald-500 focus:ring-emerald-500 bg-slate-950 w-4 h-4">
+            Mostrar Guia de Zona Segura do WhatsApp (preview)
+          </label>
+          <p class="text-[10px] text-slate-500 pl-6 mt-0.5">Exibe marcas onde ficam o topo do WhatsApp e o botão Responder.</p>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- RIGHT COLUMN: LIVE STORIES GALLERY (lg:col-span-7) -->
+    <section class="lg:col-span-7 flex flex-col space-y-4">
+      
+      <!-- TOP GALLERY BAR -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-black text-white">
+            Stories Gerados
+          </h2>
+          <p class="text-xs text-slate-400">Prontos para download em lote ou cópia direta</p>
+        </div>
+
+        <!-- Download All Batch Button -->
+        <button id="btn-download-all" onclick="downloadAllBatch()" class="bg-gradient-to-r from-amber-500 to-emerald-500 hover:from-amber-600 hover:to-emerald-600 disabled:opacity-60 disabled:cursor-not-allowed text-slate-950 font-black text-xs px-4 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2 transform active:scale-95">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          <span id="batch-btn-label">Baixar Todas em Lote</span>
+          <span id="batch-count-badge" class="bg-slate-950 text-amber-400 text-[10px] px-1.5 py-0.5 rounded-full ml-1">0</span>
+        </button>
+      </div>
+
+      <!-- STORIES CARDS CONTAINER -->
+      <div id="gallery-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Story Cards dynamically rendered here -->
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div id="empty-state" class="hidden bg-slate-900/50 border border-dashed border-slate-800 rounded-2xl p-12 text-center space-y-3">
+        <div class="text-4xl">🚚💨</div>
+        <h3 class="text-base font-bold text-slate-300">Nenhum frete encontrado</h3>
+        <p class="text-xs text-slate-500 max-w-sm mx-auto">Cole um texto válido do WhatsApp no painel ao lado para gerar os cards automaticamente.</p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- LIGHTBOX / FULLSCREEN MODAL -->
+  <div id="lightbox-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="relative max-w-sm w-full bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col items-center space-y-4 shadow-2xl">
+      
+      <button onclick="closeLightbox()" class="absolute top-3 right-3 text-slate-400 hover:text-white bg-slate-800 p-1.5 rounded-full transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <h3 id="modal-title" class="text-xs font-bold text-slate-300 tracking-wide uppercase pt-1">Visualização do Story</h3>
+
+      <div class="w-full aspect-[9/16] bg-slate-950 rounded-xl overflow-hidden relative shadow-inner flex items-center justify-center">
+        <img id="modal-img" src="" class="w-full h-full object-contain" alt="Story WhatsApp Betim Transportes">
+      </div>
+
+      <div class="flex gap-2 w-full">
+        <button id="modal-btn-download" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          Baixar PNG
+        </button>
+        <button onclick="closeLightbox()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs px-4 py-2.5 rounded-xl transition">
+          Fechar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- HELP MODAL -->
+  <div id="help-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 text-slate-300 text-xs leading-relaxed">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <span>💡</span> Como utilizar a ferramenta
+        </h3>
+        <button onclick="toggleHelpModal()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+      
+      <ol class="list-decimal pl-4 space-y-2 text-slate-300">
+        <li><strong>Cole a mensagem de fretes:</strong> Copie o texto do grupo do WhatsApp e cole na caixa de texto.</li>
+        <li><strong>Troca automática de cores:</strong> Se o veículo for <em>Graneleiro</em> a imagem fica verde; se for <em>Caçamba</em> fica laranja/âmbar (incluindo a faixa de pagamento).</li>
+        <li><strong>Frete por tonelada ou fechado:</strong> Valores abaixo de <em>R$ 1.000,00</em> exibem <strong>"Valor do Frete por Tonelada"</strong>; a partir de <em>R$ 1.000,00</em> exibem apenas <strong>"Valor do Frete"</strong>.</li>
+        <li><strong>Baixe tudo em lote:</strong> Clique no botão <strong>"Baixar Todas em Lote"</strong> para salvar todas as imagens PNG de uma vez, já nomeadas com o <em>destino</em> e o <em>tipo de caminhão</em>.</li>
+        <li><strong>Copiar direto para o WhatsApp Web:</strong> No botão <em>"Copiar Imagem"</em> você pode colar direto (Ctrl+V) no WhatsApp Web sem precisar salvar o arquivo.</li>
+      </ol>
+
+      <div class="pt-2 flex justify-end">
+        <button onclick="toggleHelpModal()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition">
+          Entendi, vamos começar!
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION SYSTEM -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    // ARQUIVOS DE LOGO BUSCADOS AUTOMATICAMENTE NA MESMA PASTA DO INDEX.HTML
+    const AUTO_LOGO_FILES = ['./logo.png', './logo.jpg', './logo.jpeg', './logo.webp', './logo.svg'];
+
+    // APP STATE
+    const state = {
+      theme: 'dark', // 'dark' | 'escuro' | 'azul' | 'claro'
+      useAutoColors: true,
+      customColor: '#10b981',
+      showSafeZone: false,
+      logoImage: null,
+      globalData: null,
+      parsedFreights: [],
+      isBatchDownloading: false
+    };
+
+    // DEFAULT DEMO TEXT
+    const DEFAULT_TEXT = `🇧🇷 *BETIM TRANSPORTES* 🇧🇷
+          *Filial: Uberaba-MG*
+
+🚨 FRETES DISPONIVEIS
+
+📍 *UBERABA/MG ➜ LASSANCE/MG*
+🚛 RODOTREM GRANELEIRO
+💰 R$ 190,00
+⛰️ BIG BAG - Carregamento YARA
+
+📍 *UBERABA/MG ➜ PALMEIRAS DE GOIAS/GO*
+🚛 RODOTREM GRANELEIRO
+💰 R$ 120,00
+⛰️ BIG BAG - Carregamento YARA
+
+📍 *UBERABA/MG ➜ FORMOSA/GO*
+🚛 RODOTREM GRANELEIRO
+💰 R$ 140,00
+⛰️ BIG BAG - Carregamento YARA
+
+🤑 *Pagamento 80/20 via pix!*
+
+📞 CONTATOS – BETIM TRANSPORTES
+
+📲 Katy: (34) 99210-4275
+📲 Ricardo: (34) 99138-7777
+📲 Raphael: (34) 99264-0606
+📲 Lucas: (34) 99920-1959`;
+
+    // INITIALIZATION ON WINDOW LOAD
+    window.onload = function() {
+      const textarea = document.getElementById('whatsapp-input');
+      textarea.value = DEFAULT_TEXT;
+
+      // Load saved custom logo or auto-load logo file from repository folder
+      loadSavedLogo();
+
+      // Event listener for textarea input
+      textarea.addEventListener('input', handleInputChange);
+
+      // Wait for fonts before initial render
+      document.fonts.ready.then(() => {
+        handleInputChange();
+      });
+    };
+
+    // REMOVE ALL EMOJIS SAFELY (KEEPING ACCENTS, LETTERS, NUMBERS AND PUNCTUATION)
+    function stripEmojis(str) {
+      if (!str) return "";
+      return str
+        .replace(/[0-9#*]\uFE0F?\u20E3/g, '')
+        .replace(/[\p{Extended_Pictographic}\p{Regional_Indicator}\u{1F3FB}-\u{1F3FF}\u{2600}-\u{27BF}\uFE0E\uFE0F\u200D\u20E3]/gu, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+    }
+
+    // EXTRACT NUMERIC VALUE FROM FREIGHT PRICE STRING (BR & INTL FORMATS)
+    function parseFreightNumericValue(valorStr) {
+      if (!valorStr) return null;
+      const match = valorStr.match(/\d+(?:[.,]\d+)*/);
+      if (!match) return null;
+
+      let numStr = match[0];
+      const hasDot = numStr.includes('.');
+      const hasComma = numStr.includes(',');
+
+      if (hasDot && hasComma) {
+        if (numStr.lastIndexOf(',') > numStr.lastIndexOf('.')) {
+          // Formato BR: 4.000,00
+          numStr = numStr.replace(/\./g, '').replace(',', '.');
+        } else {
+          // Formato US: 4,000.00
+          numStr = numStr.replace(/,/g, '');
+        }
+      } else if (hasComma) {
+        // Somente vírgula: 190,00
+        numStr = numStr.replace(',', '.');
+      } else if (hasDot) {
+        const parts = numStr.split('.');
+        if (parts.length > 2 || parts[1].length === 3) {
+          // Separador de milhar BR: 4.000 ou 1.000.000
+          numStr = numStr.replace(/\./g, '');
+        }
+      }
+
+      const value = parseFloat(numStr);
+      return isNaN(value) ? null : value;
+    }
+
+    // SMART PARSER FOR WHATSAPP MESSAGES
+    function parseWhatsAppText(rawText) {
+      if (!rawText || !rawText.trim()) return null;
+
+      const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      
+      let empresa = "BETIM TRANSPORTES";
+      let filial = "Filial: Uberaba-MG";
+      let pagamento = "Pagamento 80/20 via PIX";
+      const contatos = [];
+
+      const cleanFormat = (str) => str.replace(/[*_~`]/g, '').trim();
+
+      // Extract Company, Filial, Payment and Contacts
+      lines.forEach((l, index) => {
+        const cleanL = cleanFormat(l);
+
+        // Filial Line
+        if (cleanL.toLowerCase().includes('filial:')) {
+          filial = cleanL;
+        } 
+        // Empresa Header (check top lines)
+        else if (index < 4 && !l.includes('📍') && !l.includes('🚛') && !l.includes('💰') && !l.includes('📲') && !l.includes('🚨') && !l.includes('📞') && !l.includes('🤑')) {
+          const cleanedName = cleanL.replace(/[🇧🇷🚛📍🚨💰🤑📞📲]/g, '').trim();
+          if (cleanedName.length > 3 && empresa === "BETIM TRANSPORTES") {
+            empresa = cleanedName;
+          }
+        }
+
+        // Payment line (sem emojis)
+        if (l.includes('🤑') || /pagamento|pix|adiantamento|80\/20|70\/30/i.test(l)) {
+          const cleanedPay = stripEmojis(cleanFormat(l));
+          if (cleanedPay) pagamento = cleanedPay;
+        }
+
+        // Contacts line (sem emojis)
+        if (l.includes('📲') || /(\(?\d{2}\)?\s*\d{4,5}[-\s]?\d{4})/.test(l)) {
+          const cleanPhoneLine = stripEmojis(cleanFormat(l));
+          const parts = cleanPhoneLine.split(/[:\-–]/);
+          if (parts.length >= 2) {
+            const name = stripEmojis(parts[0]);
+            const phone = stripEmojis(parts.slice(1).join('-'));
+            if (phone) contatos.push({ name: name || 'Contato', phone });
+          } else {
+            const phoneMatch = cleanPhoneLine.match(/(\(?\d{2}\)?\s*\d{4,5}[-\s]?\d{4})/);
+            if (phoneMatch) {
+              const phone = stripEmojis(phoneMatch[0]);
+              const name = stripEmojis(cleanPhoneLine.replace(phoneMatch[0], '').replace(/[:\-–]/g, '')) || 'Contato';
+              contatos.push({ name, phone });
+            }
+          }
+        }
+      });
+
+      // Extract Freight Blocks
+      const fretes = [];
+      let currentBlock = null;
+
+      lines.forEach((line) => {
+        const hasPin = line.includes('📍');
+        const hasArrow = /➜|→|->|➡|=>|\s+PARA\s+/.test(line);
+
+        if (hasPin || (hasArrow && !line.includes('📲') && !line.includes('📞'))) {
+          if (currentBlock) {
+            fretes.push(processFreightBlock(currentBlock));
+          }
+          currentBlock = [line];
+        } else if (currentBlock) {
+          if (line.includes('🤑') || line.includes('📞') || line.includes('📲') || /CONTATOS/i.test(line)) {
+            fretes.push(processFreightBlock(currentBlock));
+            currentBlock = null;
+          } else {
+            currentBlock.push(line);
+          }
+        }
+      });
+
+      if (currentBlock) {
+        fretes.push(processFreightBlock(currentBlock));
+      }
+
+      return {
+        empresa,
+        filial,
+        pagamento: stripEmojis(pagamento) || "Pagamento 80/20 via PIX",
+        contatos: contatos.length > 0 ? contatos : [
+          { name: 'Katy', phone: '(34) 99210-4275' },
+          { name: 'Ricardo', phone: '(34) 99138-7777' },
+          { name: 'Raphael', phone: '(34) 99264-0606' },
+          { name: 'Lucas', phone: '(34) 99920-1959' }
+        ],
+        fretes
+      };
+    }
+
+    function processFreightBlock(blockLines) {
+      let origem = "";
+      let destino = "";
+      let veiculo = "RODOTREM GRANELEIRO";
+      let valor = "A COMBINAR";
+      let carga = "CARGA GERAL";
+
+      const cleanFormat = (str) => str.replace(/[*_~`]/g, '').trim();
+
+      blockLines.forEach((line) => {
+        const clean = cleanFormat(line);
+        const hasArrow = /➜|→|->|➡|=>|\s+PARA\s+/.test(clean);
+
+        if (line.includes('📍') || hasArrow) {
+          let routeStr = clean.replace(/📍/g, '').trim();
+          let parts = routeStr.split(/➜|→|->|➡|=>|\s+PARA\s+/);
+          if (parts.length >= 2) {
+            origem = parts[0].trim();
+            destino = parts[1].trim();
+          } else {
+            origem = routeStr;
+            destino = "";
+          }
+        } else if (line.includes('🚛') || line.includes('🚚') || /GRANELEIRO|CAÇAMBA|CACAMBA|RODOTREM|BITREM|CARRETA|VANDERLEIA|TRUCK|LS|SIDER|BAU/i.test(clean)) {
+          const cleanedVehicle = stripEmojis(clean);
+          if (cleanedVehicle) veiculo = cleanedVehicle;
+        } else if (line.includes('💰') || line.includes('💵') || /R\$|COMBINAR|\/ TON|\/T/i.test(clean)) {
+          const cleanedValue = stripEmojis(clean);
+          if (cleanedValue) valor = cleanedValue;
+        } else if (line.includes('⛰️') || line.includes('📦') || line.includes('🏭') || line.includes('🌾') || line.includes('🪨') || (clean.length > 0 && carga === "CARGA GERAL")) {
+          const cleanedCargo = stripEmojis(clean);
+          if (cleanedCargo) carga = cleanedCargo;
+        }
+      });
+
+      // Auto category detection
+      let categoria = "padrao";
+      const vUpper = veiculo.toUpperCase();
+      if (vUpper.includes("CAÇAMBA") || vUpper.includes("CACAMBA")) {
+        categoria = "cacamba";
+      } else if (vUpper.includes("GRANELEIRO")) {
+        categoria = "graneleiro";
+      }
+
+      return {
+        origem: origem || "ORIGEM NÃO ESPECIFICADA",
+        destino: destino || "DESTINO NÃO ESPECIFICADO",
+        veiculo: stripEmojis(veiculo) || "RODOTREM GRANELEIRO",
+        valor: stripEmojis(valor) || "A COMBINAR",
+        carga: stripEmojis(carga) || "CARGA GERAL",
+        categoria
+      };
+    }
+
+    // HANDLE INPUT CHANGES & RE-RENDER
+    function handleInputChange() {
+      const text = document.getElementById('whatsapp-input').value;
+      const data = parseWhatsAppText(text);
+
+      const summaryBadge = document.getElementById('parser-badge');
+      const batchBadge = document.getElementById('batch-count-badge');
+      const emptyState = document.getElementById('empty-state');
+
+      if (!data || data.fretes.length === 0) {
+        state.parsedFreights = [];
+        state.globalData = null;
+        summaryBadge.innerText = "0 fretes detectados";
+        batchBadge.innerText = "0";
+        document.getElementById('gallery-container').innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      state.globalData = data;
+      state.parsedFreights = data.fretes;
+
+      // Update Summary Text
+      summaryBadge.innerText = `${data.fretes.length} ${data.fretes.length === 1 ? 'frete detectado' : 'fretes detectados'}`;
+      batchBadge.innerText = data.fretes.length;
+      document.getElementById('summary-empresa').innerText = data.empresa;
+      document.getElementById('summary-filial').innerText = data.filial;
+      document.getElementById('summary-contatos').innerText = `${data.contatos.length} agenciadores`;
+
+      renderAllCards();
+    }
+
+    // RENDER ALL STORIES TO CANVAS GALLERY
+    function renderAllCards() {
+      const container = document.getElementById('gallery-container');
+      container.innerHTML = '';
+
+      if (!state.parsedFreights || state.parsedFreights.length === 0) return;
+
+      state.parsedFreights.forEach((freight, index) => {
+        // Create Card Wrapper DOM Element
+        const cardEl = document.createElement('div');
+        cardEl.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col items-center space-y-3 relative group";
+
+        // Implement Badge Color styling for DOM header
+        let badgeBg = "bg-blue-500/20 text-blue-400 border-blue-500/30";
+        let badgeLabel = "OUTRO";
+        if (freight.categoria === "graneleiro") {
+          badgeBg = "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+          badgeLabel = "GRANELEIRO";
+        } else if (freight.categoria === "cacamba") {
+          badgeBg = "bg-amber-500/20 text-amber-400 border-amber-500/30";
+          badgeLabel = "CAÇAMBA";
+        }
+
+        cardEl.innerHTML = `
+          <div class="w-full flex items-center justify-between text-xs font-bold border-b border-slate-800 pb-2.5">
+            <span class="text-slate-200 truncate pr-2" title="${freight.origem} ➜ ${freight.destino}">
+              📍 ${freight.origem} ➜ ${freight.destino}
+            </span>
+            <span class="px-2 py-0.5 rounded-full border text-[10px] ${badgeBg}">
+              ${badgeLabel}
+            </span>
+          </div>
+
+          <!-- Canvas Preview Container -->
+          <div class="relative w-full aspect-[9/16] bg-slate-950 rounded-xl overflow-hidden shadow-inner flex items-center justify-center border border-slate-800/80">
+            <canvas id="story-canvas-${index}" class="w-full h-full object-contain"></canvas>
+            
+            <!-- WhatsApp Safe Zone Overlay (toggled via checkbox) -->
+            <div id="safe-zone-${index}" class="safe-zone-overlay ${state.showSafeZone ? '' : 'hidden'}">
+              <div class="safe-zone-top">
+                <span class="safe-zone-label">Topo WhatsApp (Status Bar)</span>
+              </div>
+              <div class="safe-zone-bottom">
+                <span class="safe-zone-label">Botão Responder WhatsApp</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="grid grid-cols-3 gap-2 w-full pt-1">
+            <button onclick="downloadSingleImage(${index})" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs py-2 rounded-lg transition flex items-center justify-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              Baixar
+            </button>
+
+            <button onclick="copySingleImage(${index})" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs py-2 rounded-lg border border-slate-700 transition flex items-center justify-center gap-1" title="Copiar Imagem para área de transferência">
+              <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+              Copiar
+            </button>
+
+            <button onclick="openLightbox(${index})" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs py-2 rounded-lg border border-slate-700 transition flex items-center justify-center gap-1">
+              <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+              Ampliar
+            </button>
+          </div>
+        `;
+
+        container.appendChild(cardEl);
+
+        // Render Canvas content after element insertion
+        setTimeout(() => {
+          const canvas = document.getElementById(`story-canvas-${index}`);
+          if (canvas) {
+            renderStoryCanvas(canvas, freight, state.globalData, state);
+          }
+        }, 10);
+      });
+    }
+
+    // HTML5 CANVAS RENDERING ENGINE (1080 x 1920 PX EXPOSED NATIVE RESOLUTION)
+    function renderStoryCanvas(canvas, freight, globalData, settings) {
+      const ctx = canvas.getContext('2d');
+      canvas.width = 1080;
+      canvas.height = 1920;
+
+      const { theme, logoImage, useAutoColors, customColor } = settings;
+      const { empresa, filial, pagamento, contatos } = globalData;
+
+      // Color scheme calculation
+      let primaryColor = "#10B981";
+      let primaryDark = "#047857";
+      let badgeText = "#FFFFFF";
+
+      if (useAutoColors) {
+        if (freight.categoria === "graneleiro") {
+          primaryColor = "#10B981";
+          primaryDark = "#047857";
+          badgeText = "#FFFFFF";
+        } else if (freight.categoria === "cacamba") {
+          primaryColor = "#F59E0B";
+          primaryDark = "#D97706";
+          badgeText = "#2D1300";
+        } else {
+          primaryColor = "#3B82F6";
+          primaryDark = "#1D4ED8";
+          badgeText = "#FFFFFF";
+        }
+      } else {
+        primaryColor = customColor || "#10B981";
+        primaryDark = customColor || "#059669";
+        badgeText = "#FFFFFF";
+      }
+
+      // Theme Background setup
+      let bgGradient;
+      let cardBg;
+      let cardBorder;
+      let textColorMain;
+      let textColorSub;
+      let valorText;
+      let valorBorder;
+
+      if (theme === 'dark') {
+        // Dark (grafite/carvão profundo — bem mais escuro sem chegar a ser preto puro)
+        bgGradient = ctx.createLinearGradient(0, 0, 1080, 1920);
+        bgGradient.addColorStop(0, '#141518');
+        bgGradient.addColorStop(0.55, '#0D0E11');
+        bgGradient.addColorStop(1, '#08090B');
+        cardBg = 'rgba(22, 23, 27, 0.92)';
+        cardBorder = 'rgba(255, 255, 255, 0.08)';
+        textColorMain = '#F8FAFC';
+        textColorSub = '#9CA3AF';
+        valorText = '#FACC15';
+        valorBorder = '#FACC15';
+      } else if (theme === 'azul') {
+        bgGradient = ctx.createLinearGradient(0, 0, 1080, 1920);
+        bgGradient.addColorStop(0, '#0A1128');
+        bgGradient.addColorStop(0.5, '#1C2541');
+        bgGradient.addColorStop(1, '#0B132B');
+        cardBg = 'rgba(15, 23, 42, 0.85)';
+        cardBorder = 'rgba(56, 189, 248, 0.25)';
+        textColorMain = '#FFFFFF';
+        textColorSub = '#94A3B8';
+        valorText = '#FACC15';
+        valorBorder = '#FACC15';
+      } else if (theme === 'claro') {
+        bgGradient = ctx.createLinearGradient(0, 0, 1080, 1920);
+        bgGradient.addColorStop(0, '#F8FAFC');
+        bgGradient.addColorStop(1, '#E2E8F0');
+        cardBg = '#FFFFFF';
+        cardBorder = '#CBD5E1';
+        textColorMain = '#0F172A';
+        textColorSub = '#64748B';
+        valorText = '#FACC15';
+        valorBorder = '#F59E0B';
+      } else {
+        // Escuro Industrial
+        bgGradient = ctx.createLinearGradient(0, 0, 1080, 1920);
+        bgGradient.addColorStop(0, '#0F172A');
+        bgGradient.addColorStop(0.6, '#090D16');
+        bgGradient.addColorStop(1, '#020617');
+        cardBg = 'rgba(30, 41, 59, 0.85)';
+        cardBorder = 'rgba(255, 255, 255, 0.12)';
+        textColorMain = '#FFFFFF';
+        textColorSub = '#94A3B8';
+        valorText = '#FACC15';
+        valorBorder = '#FACC15';
+      }
+
+      // 1. Draw Background
+      ctx.fillStyle = bgGradient;
+      ctx.fillRect(0, 0, 1080, 1920);
+
+      // Geometric Grid Overlay
+      ctx.save();
+      ctx.strokeStyle = theme === 'claro'
+        ? 'rgba(0,0,0,0.03)'
+        : (theme === 'dark' ? 'rgba(255,255,255,0.022)' : 'rgba(255,255,255,0.03)');
+      ctx.lineWidth = 2;
+      for (let i = -1000; i < 2000; i += 120) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i + 800, 1920);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // Top Radial Glow
+      const topGlow = ctx.createRadialGradient(540, 210, 50, 540, 210, 520);
+      topGlow.addColorStop(0, primaryColor + (theme === 'dark' ? '1E' : '28'));
+      topGlow.addColorStop(1, 'transparent');
+      ctx.fillStyle = topGlow;
+      ctx.fillRect(0, 0, 1080, 620);
+
+      // 2. HEADER SECTION (Logo +10% adicional -> 132x660 | Filial mais perto da logo e mais distante do veículo)
+      let accentLineY = 352;
+      if (logoImage) {
+        const aspect = logoImage.width / logoImage.height;
+        let targetH = 132; // +10% sobre 120px
+        let targetW = targetH * aspect;
+        if (targetW > 660) { // +10% sobre 600px
+          targetW = 660;
+          targetH = targetW / aspect;
+        }
+        // Posiciona a logo na área superior deixando a filial logo colada embaixo e mais respiro até o banner do veículo
+        const logoBoxTop = 178;
+        const logoBoxHeight = 132;
+        const logoY = logoBoxTop + (logoBoxHeight - targetH) * 0.45;
+        const logoBottomY = logoY + targetH;
+        ctx.drawImage(logoImage, 540 - targetW / 2, logoY, targetW, targetH);
+
+        // Filial mais próxima da logo (14px abaixo da base da logo)
+        const filialY = logoBottomY + 14;
+        drawAutoFitText(ctx, filial.toUpperCase(), 540, filialY, 880, 25, 18, "700", primaryColor, 'center');
+        accentLineY = Math.min(354, filialY + 26);
+      } else {
+        // Top Pill Badge (18px)
+        drawRoundedRect(ctx, 540 - 155, 186, 310, 42, 21, primaryColor + '20', primaryColor, 1.8);
+        ctx.font = "800 18px 'Montserrat', sans-serif";
+        ctx.fillStyle = primaryColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText("🚨 FRETE DISPONÍVEL", 540, 207);
+
+        // Empresa Name (47px)
+        drawAutoFitText(ctx, empresa.toUpperCase(), 540, 264, 920, 47, 30, "900", textColorMain, 'center');
+
+        // Filial (25px)
+        drawAutoFitText(ctx, filial.toUpperCase(), 540, 316, 880, 25, 18, "700", primaryColor, 'center');
+        accentLineY = 346;
+      }
+
+      // Decorative Accent Line
+      ctx.strokeStyle = primaryColor;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(430, accentLineY);
+      ctx.lineTo(650, accentLineY);
+      ctx.stroke();
+
+      // 3. VEHICLE / IMPLEMENT BANNER (MAIS DISTANTE DA FILIAL | SEM EMOJIS | Y=392 - Y=492)
+      const bannerY = 392;
+      const bannerH = 100;
+      const bannerW = 900;
+      const bannerX = (1080 - bannerW) / 2;
+
+      const bannerGrad = ctx.createLinearGradient(bannerX, bannerY, bannerX + bannerW, bannerY + bannerH);
+      bannerGrad.addColorStop(0, primaryDark);
+      bannerGrad.addColorStop(0.5, primaryColor);
+      bannerGrad.addColorStop(1, primaryDark);
+
+      // Glow externo no banner do veículo
+      ctx.save();
+      ctx.shadowColor = primaryColor + '99';
+      ctx.shadowBlur = 32;
+      ctx.shadowOffsetY = 8;
+      drawRoundedRect(ctx, bannerX, bannerY, bannerW, bannerH, 30, bannerGrad, 'rgba(255,255,255,0.45)', 3);
+      ctx.restore();
+
+      // Brilho superior sutil interno
+      ctx.save();
+      drawRoundedRect(ctx, bannerX + 4, bannerY + 4, bannerW - 8, 40, 26, 'rgba(255,255,255,0.12)', null);
+      ctx.restore();
+
+      // Somente o tipo de caminhão centralizado em máximo destaque, sem emojis (46px auto-fit)
+      const cleanVehicleText = stripEmojis(freight.veiculo).toUpperCase();
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.35)';
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetY = 3;
+      drawAutoFitText(ctx, cleanVehicleText, 540, bannerY + bannerH / 2 + 2, bannerW - 70, 46, 28, "900", badgeText, 'center');
+      ctx.restore();
+
+      // 4. MAIN ROUTE CARD (Y=512 - Y=878 | Fontes +12%)
+      const routeX = 90;
+      const routeY = 512;
+      const routeW = 900;
+      const routeH = 366;
+
+      drawRoundedRect(ctx, routeX, routeY, routeW, routeH, 32, cardBg, cardBorder, 3);
+
+      const trackX = 145;
+      const origCenterY = routeY + 82;
+      const destCenterY = routeY + 272;
+
+      // Origem Dot
+      ctx.fillStyle = primaryColor;
+      ctx.beginPath();
+      ctx.arc(trackX, origCenterY, 14, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Dashed Track Line (terminando acima do topo do pin de mapa)
+      ctx.save();
+      ctx.strokeStyle = primaryColor;
+      ctx.lineWidth = 4;
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(trackX, origCenterY + 22);
+      ctx.lineTo(trackX, destCenterY - 38);
+      ctx.stroke();
+      ctx.restore();
+
+      // Destino: Pin de Mapa Vermelho Vetorial
+      drawRedMapPin(ctx, trackX, destCenterY, 18);
+
+      // ORIGEM Text Block (20px | 47px)
+      ctx.font = "700 20px 'Montserrat', sans-serif";
+      ctx.fillStyle = textColorSub;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText("ORIGEM", 190, routeY + 26);
+
+      drawAutoFitText(ctx, freight.origem.toUpperCase(), 190, routeY + 88, 670, 47, 28, "800", textColorMain, 'left');
+
+      // Inner Card Horizontal Divider
+      ctx.strokeStyle = theme === 'claro' ? '#E2E8F0' : 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(190, routeY + 160);
+      ctx.lineTo(routeX + routeW - 40, routeY + 160);
+      ctx.stroke();
+
+      // DESTINO Text Block (20px | 63px)
+      ctx.font = "700 20px 'Montserrat', sans-serif";
+      ctx.fillStyle = primaryColor;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText("DESTINO", 190, routeY + 186);
+
+      // Auto Scaling City Text Algorithm (63px -> 34px)
+      drawAutoFitText(ctx, freight.destino.toUpperCase(), 190, routeY + 272, 670, 63, 34, "900", textColorMain, 'left');
+
+      // 5. FREIGHT VALUE CARD (SEM EMOJIS | TÍTULO DINÂMICO: < R$ 1.000 = POR TONELADA | >= R$ 1.000 = VALOR DO FRETE | Y=898 - Y=1092)
+      const valX = 90;
+      const valY = 898;
+      const valW = 900;
+      const valH = 194;
+
+      const valGrad = ctx.createLinearGradient(valX, valY, valX + valW, valY + valH);
+      if (theme === 'dark') {
+        valGrad.addColorStop(0, '#18191E');
+        valGrad.addColorStop(0.5, '#0E0F12');
+        valGrad.addColorStop(1, '#18191E');
+      } else if (theme === 'claro') {
+        valGrad.addColorStop(0, '#0F172A');
+        valGrad.addColorStop(0.5, '#1E293B');
+        valGrad.addColorStop(1, '#0F172A');
+      } else {
+        valGrad.addColorStop(0, '#1E293B');
+        valGrad.addColorStop(0.5, '#0F172A');
+        valGrad.addColorStop(1, '#1E293B');
+      }
+
+      // Glow dourado externo + borda espessa
+      ctx.save();
+      ctx.shadowColor = 'rgba(250, 204, 21, 0.35)';
+      ctx.shadowBlur = 34;
+      ctx.shadowOffsetY = 6;
+      drawRoundedRect(ctx, valX, valY, valW, valH, 28, valGrad, valorBorder, 4);
+      ctx.restore();
+
+      // Brilho radial dourado suave no interior do card
+      ctx.save();
+      const valGlow = ctx.createRadialGradient(540, valY + valH / 2 + 10, 20, 540, valY + valH / 2 + 10, 420);
+      valGlow.addColorStop(0, 'rgba(250, 204, 21, 0.16)');
+      valGlow.addColorStop(1, 'transparent');
+      drawRoundedRect(ctx, valX + 4, valY + 4, valW - 8, valH - 8, 24, valGlow, null);
+      ctx.restore();
+
+      // Pill de título condicional sem emojis (< R$ 1.000,00 -> por tonelada | >= R$ 1.000,00 ou sem valor numérico -> Valor do Frete)
+      const cleanValorText = stripEmojis(freight.valor).toUpperCase() || "A COMBINAR";
+      const numericFreightValue = parseFreightNumericValue(cleanValorText);
+      const isPerTon = numericFreightValue !== null && numericFreightValue > 0 && numericFreightValue < 1000;
+      const valLabelText = isPerTon ? "VALOR DO FRETE POR TONELADA" : "VALOR DO FRETE";
+
+      ctx.font = "800 22px 'Montserrat', sans-serif";
+      const pillW = Math.min(valW - 70, ctx.measureText(valLabelText).width + 64);
+      drawRoundedRect(ctx, 540 - pillW / 2, valY + 20, pillW, 42, 21, 'rgba(250, 204, 21, 0.15)', 'rgba(250, 204, 21, 0.65)', 1.5);
+      ctx.fillStyle = '#FACC15';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(valLabelText, 540, valY + 41);
+
+      // Valor do frete em máximo destaque sem emojis (78px auto-fit)
+      ctx.save();
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+      ctx.shadowBlur = 14;
+      ctx.shadowOffsetY = 4;
+      drawAutoFitText(ctx, cleanValorText, 540, valY + 128, 820, 78, 44, "900", valorText, 'center');
+      ctx.restore();
+
+      // 6. CARGO / CARREGAMENTO CARD (SEM EMOJIS | Y=1112 - Y=1256 | Fontes +12%)
+      const cargoX = 90;
+      const cargoY = 1112;
+      const cargoW = 900;
+      const cargoH = 144;
+
+      drawRoundedRect(ctx, cargoX, cargoY, cargoW, cargoH, 24, cardBg, cardBorder, 2);
+
+      ctx.font = "700 20px 'Montserrat', sans-serif";
+      ctx.fillStyle = textColorSub;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText("PRODUTO / OBSERVAÇÕES", cargoX + 40, cargoY + 20);
+
+      const cleanCargoText = stripEmojis(freight.carga).toUpperCase() || "CARGA GERAL";
+      ctx.font = "800 34px 'Montserrat', sans-serif";
+      ctx.fillStyle = textColorMain;
+      drawWrappedText(ctx, cleanCargoText, cargoX + 40, cargoY + 58, 820, 42, 2);
+
+      // 7. PAYMENT CONDITION BANNER (NEGRITO 900 + FONTE 33px | SEM EMOJIS | COR DO VEÍCULO QUANDO FOR CAÇAMBA | Y=1276 - Y=1364)
+      const payX = 90;
+      const payY = 1276;
+      const payW = 900;
+      const payH = 88;
+
+      const isCacamba = freight.categoria === "cacamba";
+      const payAccentColor = isCacamba ? primaryColor : '#10B981';
+      const payTextColor = (isCacamba && theme === 'claro') ? primaryDark : payAccentColor;
+
+      const payGrad = ctx.createLinearGradient(payX, payY, payX + payW, payY);
+      if (isCacamba) {
+        payGrad.addColorStop(0, primaryColor + '33');
+        payGrad.addColorStop(1, primaryDark + '4D');
+      } else {
+        payGrad.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
+        payGrad.addColorStop(1, 'rgba(5, 150, 105, 0.3)');
+      }
+
+      drawRoundedRect(ctx, payX, payY, payW, payH, 20, payGrad, payAccentColor, 2);
+
+      const cleanPaymentText = stripEmojis(pagamento).toUpperCase();
+      drawAutoFitText(ctx, cleanPaymentText, 540, payY + payH / 2 + 1, 845, 33, 22, "900", payTextColor, 'center');
+
+      // 8. CONTACTS BLOCK (SEM EMOJI DE TELEFONE | TÍTULO E CONTATOS +12% -> 25px | Y=1384 - Y=1658)
+      const contX = 90;
+      const contY = 1384;
+      const contW = 900;
+      const contH = 274;
+
+      drawRoundedRect(ctx, contX, contY, contW, contH, 28, cardBg, cardBorder, 2);
+
+      // Título +12% (22px -> 25px) e sem emoji de telefone
+      ctx.font = "800 25px 'Montserrat', sans-serif";
+      ctx.fillStyle = textColorSub;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText("FALE COM NOSSOS AGENCIADORES", 540, contY + 18);
+
+      ctx.strokeStyle = theme === 'claro' ? '#E2E8F0' : 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(contX + 40, contY + 58);
+      ctx.lineTo(contX + contW - 40, contY + 58);
+      ctx.stroke();
+
+      // Render 2-Column Contacts Grid (+12% -> 25px com auto-fit defensivo por coluna)
+      const activeContacts = contatos.slice(0, 6);
+      const isTwoCol = activeContacts.length > 2;
+      const totalRows = isTwoCol ? Math.ceil(activeContacts.length / 2) : activeContacts.length;
+      const rowStep = totalRows <= 2 ? 78 : 64;
+      const startY = totalRows === 1 ? contY + 132 : (totalRows === 2 ? contY + 90 : contY + 74);
+      const maxColTextWidth = isTwoCol ? 386 : 760;
+
+      activeContacts.forEach((c, idx) => {
+        let col = isTwoCol ? (idx % 2) : 0;
+        let row = isTwoCol ? Math.floor(idx / 2) : idx;
+
+        let itemX = isTwoCol ? (col === 0 ? contX + 26 : contX + 462) : contX + 165;
+        let itemY = startY + (row * rowStep);
+
+        // WhatsApp Icon Circle
+        ctx.fillStyle = '#25D366';
+        ctx.beginPath();
+        ctx.arc(itemX + 14, itemY + 22, 14, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = "800 16px 'Montserrat', sans-serif";
+        ctx.fillStyle = '#FFFFFF';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText("✓", itemX + 14, itemY + 22);
+
+        // Name & Phone (22px -> 25px com auto-fit defensivo por coluna, sem emojis)
+        const cleanContactName = stripEmojis(c.name) || 'Contato';
+        const cleanContactPhone = stripEmojis(c.phone);
+        let contactFontSize = 25;
+        const namePart = cleanContactName + ": ";
+        let nameW = 0;
+        let totalW = 0;
+
+        while (contactFontSize >= 16) {
+          ctx.font = `800 ${contactFontSize}px 'Montserrat', sans-serif`;
+          nameW = ctx.measureText(namePart).width;
+          ctx.font = `700 ${contactFontSize}px 'Montserrat', sans-serif`;
+          totalW = nameW + ctx.measureText(cleanContactPhone).width;
+          if (totalW <= maxColTextWidth) break;
+          contactFontSize -= 1;
+        }
+
+        ctx.font = `800 ${contactFontSize}px 'Montserrat', sans-serif`;
+        ctx.fillStyle = textColorMain;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(namePart, itemX + 36, itemY + 22);
+
+        ctx.font = `700 ${contactFontSize}px 'Montserrat', sans-serif`;
+        ctx.fillStyle = primaryColor;
+        ctx.fillText(cleanContactPhone, itemX + 36 + nameW, itemY + 22);
+      });
+
+      // 9. FOOTER (Below Y=1680 | 18px)
+      ctx.font = "600 18px 'Montserrat', sans-serif";
+      ctx.fillStyle = textColorSub;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText("Transporte com Rapidez e Segurança • Betim Transportes", 540, 1712);
+    }
+
+    // CANVAS DRAWING HELPER FUNCTIONS
+    function drawRedMapPin(ctx, cx, cy, r = 18) {
+      const headY = cy - 9;
+      const tipY = cy + 25;
+      const d = tipY - headY;
+      const tangentAngle = Math.asin(Math.min(0.95, r / d));
+
+      ctx.save();
+
+      // Sombra elíptica sutil na ponta do pin
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.32)';
+      ctx.beginPath();
+      ctx.ellipse(cx, tipY + 2, r * 0.55, 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Corpo do pin em degradê vermelho vibrante com leve brilho externo
+      const pinGrad = ctx.createLinearGradient(cx - r, headY - r, cx + r, tipY);
+      pinGrad.addColorStop(0, '#F87171');
+      pinGrad.addColorStop(0.4, '#EF4444');
+      pinGrad.addColorStop(1, '#B91C1C');
+
+      ctx.shadowColor = 'rgba(239, 68, 68, 0.55)';
+      ctx.shadowBlur = 14;
+      ctx.shadowOffsetY = 3;
+
+      ctx.beginPath();
+      ctx.moveTo(cx, tipY);
+      ctx.lineTo(cx - r * Math.cos(tangentAngle), headY + r * Math.sin(tangentAngle));
+      ctx.arc(cx, headY, r, Math.PI - tangentAngle, tangentAngle, false);
+      ctx.lineTo(cx, tipY);
+      ctx.closePath();
+
+      ctx.fillStyle = pinGrad;
+      ctx.fill();
+
+      // Contorno sutil para definição
+      ctx.shadowColor = 'transparent';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Círculo interno branco do pin
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.arc(cx, headY, r * 0.42, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawRoundedRect(ctx, x, y, width, height, radius, fillStyle, strokeStyle, strokeWidth = 1) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+
+      if (fillStyle) {
+        ctx.fillStyle = fillStyle;
+        ctx.fill();
+      }
+
+      if (strokeStyle) {
+        ctx.strokeStyle = strokeStyle;
+        ctx.lineWidth = strokeWidth;
+        ctx.stroke();
+      }
+    }
+
+    function drawAutoFitText(ctx, text, x, y, maxWidth, maxFontSize, minFontSize, fontWeight, fontColor, align = 'left') {
+      let fontSize = maxFontSize;
+      ctx.font = `${fontWeight} ${fontSize}px 'Montserrat', sans-serif`;
+      while (ctx.measureText(text).width > maxWidth && fontSize > minFontSize) {
+        fontSize -= 2;
+        ctx.font = `${fontWeight} ${fontSize}px 'Montserrat', sans-serif`;
+      }
+      ctx.fillStyle = fontColor;
+      ctx.textAlign = align;
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, x, y);
+    }
+
+    function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 2) {
+      const words = text.split(' ');
+      let line = '';
+      let currentY = y;
+      let linesCount = 0;
+
+      for (let n = 0; n < words.length; n++) {
+        let testLine = line + words[n] + ' ';
+        let metrics = ctx.measureText(testLine);
+        if (metrics.width > maxWidth && n > 0) {
+          ctx.fillText(line.trim(), x, currentY);
+          line = words[n] + ' ';
+          currentY += lineHeight;
+          linesCount++;
+          if (linesCount >= maxLines - 1) {
+            let remaining = words.slice(n).join(' ');
+            while (ctx.measureText(remaining + '...').width > maxWidth && remaining.length > 0) {
+              remaining = remaining.substring(0, remaining.length - 1);
+            }
+            ctx.fillText(remaining.trim() + (remaining.length < words.slice(n).join(' ').length ? '...' : ''), x, currentY);
+            return;
+          }
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line.trim(), x, currentY);
+    }
+
+    // USER CONTROLS & ACTIONS
+    function pasteClipboard() {
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        navigator.clipboard.readText().then(text => {
+          if (text) {
+            document.getElementById('whatsapp-input').value = text;
+            handleInputChange();
+            showToast('Texto colado da área de transferência!', 'success');
+          }
+        }).catch(() => {
+          showToast('Use Ctrl+V para colar na caixa de texto.', 'info');
+        });
+      } else {
+        showToast('Use Ctrl+V para colar na caixa de texto.', 'info');
+      }
+    }
+
+    function clearText() {
+      document.getElementById('whatsapp-input').value = '';
+      handleInputChange();
+      showToast('Caixa de texto limpa.', 'warning');
+    }
+
+    function setTheme(themeName) {
+      state.theme = themeName;
+      document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.classList.remove('active', 'border-amber-500');
+        btn.classList.add('border-slate-700');
+      });
+      const activeBtn = document.getElementById(`theme-btn-${themeName}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('border-slate-700');
+        activeBtn.classList.add('active', 'border-amber-500');
+      }
+      renderAllCards();
+    }
+
+    function toggleAutoColors() {
+      const chk = document.getElementById('chk-auto-colors');
+      state.useAutoColors = chk.checked;
+      const pickerBox = document.getElementById('custom-color-container');
+      if (chk.checked) {
+        pickerBox.classList.add('hidden');
+      } else {
+        pickerBox.classList.remove('hidden');
+        pickerBox.classList.add('flex');
+      }
+      renderAllCards();
+    }
+
+    function toggleSafeZoneOverlay() {
+      state.showSafeZone = document.getElementById('chk-safe-zone').checked;
+      state.parsedFreights.forEach((_, idx) => {
+        const el = document.getElementById(`safe-zone-${idx}`);
+        if (el) {
+          if (state.showSafeZone) el.classList.remove('hidden');
+          else el.classList.add('hidden');
+        }
+      });
+    }
+
+    // LOGO AUTO-LOAD, UPLOAD & STORAGE
+    function loadAutoLogo(candidateIndex = 0) {
+      if (candidateIndex >= AUTO_LOGO_FILES.length) {
+        return;
+      }
+
+      const filePath = AUTO_LOGO_FILES[candidateIndex];
+      const img = new Image();
+
+      if (window.location.protocol !== 'file:') {
+        img.crossOrigin = 'anonymous';
+      }
+
+      img.onload = function() {
+        state.logoImage = img;
+        const cleanName = filePath.replace('./', '');
+        document.getElementById('logo-status-text').innerText = `Logo Padrão (${cleanName}) ✓`;
+        document.getElementById('btn-remove-logo').classList.remove('hidden');
+        renderAllCards();
+      };
+
+      img.onerror = function() {
+        loadAutoLogo(candidateIndex + 1);
+      };
+
+      img.src = filePath;
+    }
+
+    function handleLogoUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64 = e.target.result;
+        try {
+          localStorage.setItem('betim_logo_base64', base64);
+        } catch(err) {
+          console.warn("Storage full", err);
+        }
+        loadLogoFromDataUrl(base64, true);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function loadSavedLogo() {
+      const saved = localStorage.getItem('betim_logo_base64');
+      if (saved) {
+        loadLogoFromDataUrl(saved, false);
+      } else {
+        loadAutoLogo();
+      }
+    }
+
+    function loadLogoFromDataUrl(url, notify = true) {
+      const img = new Image();
+      img.onload = function() {
+        state.logoImage = img;
+        document.getElementById('logo-status-text').innerText = "Logo Carregada ✓";
+        document.getElementById('btn-remove-logo').classList.remove('hidden');
+        renderAllCards();
+        if (notify) {
+          showToast('Logo atualizada com sucesso!', 'success');
+        }
+      };
+      img.onerror = function() {
+        localStorage.removeItem('betim_logo_base64');
+        loadAutoLogo();
+      };
+      img.src = url;
+    }
+
+    function removeLogo() {
+      localStorage.removeItem('betim_logo_base64');
+      state.logoImage = null;
+      document.getElementById('logo-status-text').innerText = "Subir Imagem da Logo";
+      document.getElementById('btn-remove-logo').classList.add('hidden');
+      document.getElementById('logo-input').value = "";
+      renderAllCards();
+      showToast('Logo removida.', 'info');
+    }
+
+    // EXPORT & DOWNLOAD ACTIONS (DESTINO + TIPO DE CAMINHÃO)
+    function sanitizeFilenamePart(str) {
+      return stripEmojis(str || '')
+        .replace(/[\/\\]+/g, '-')
+        .replace(/[<>:"|?*]+/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function getFilenameForFreight(freight, duplicateSuffix = '') {
+      const dest = sanitizeFilenamePart(freight.destino) || 'DESTINO';
+      const veiculo = sanitizeFilenamePart(freight.veiculo) || 'VEICULO';
+      return `${dest} - ${veiculo}${duplicateSuffix}.png`;
+    }
+
+    function triggerCanvasDownload(canvas, filename) {
+      return new Promise((resolve) => {
+        if (canvas.toBlob) {
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.download = filename;
+              link.href = url;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              setTimeout(() => URL.revokeObjectURL(url), 1500);
+              resolve();
+              return;
+            }
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            resolve();
+          }, 'image/png');
+        } else {
+          const link = document.createElement('a');
+          link.download = filename;
+          link.href = canvas.toDataURL('image/png');
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          resolve();
+        }
+      });
+    }
+
+    async function downloadSingleImage(index) {
+      const canvas = document.getElementById(`story-canvas-${index}`);
+      if (!canvas) return;
+
+      const freight = state.parsedFreights[index];
+      const filename = getFilenameForFreight(freight);
+
+      await triggerCanvasDownload(canvas, filename);
+      showToast(`Imagem "${filename}" baixada!`, 'success');
+    }
+
+    async function copySingleImage(index) {
+      const canvas = document.getElementById(`story-canvas-${index}`);
+      if (!canvas) return;
+
+      try {
+        canvas.toBlob(async (blob) => {
+          if (!blob) {
+            showToast('Erro ao processar imagem.', 'error');
+            return;
+          }
+          try {
+            const item = new ClipboardItem({ 'image/png': blob });
+            await navigator.clipboard.write([item]);
+            showToast('Imagem copiada! Cole no WhatsApp Web com Ctrl+V.', 'success');
+          } catch (err) {
+            // Safe Fallback instructions
+            showToast('Copiar via script restrito pelo navegador. Baixe a imagem.', 'warning');
+          }
+        }, 'image/png');
+      } catch (e) {
+        showToast('Recurso não suportado neste navegador. Use o botão Baixar.', 'error');
+      }
+    }
+
+    // BATCH DOWNLOAD (ALL PNGs SEQUENTIALLY WITH DESTINO + VEICULO FILENAMES)
+    async function downloadAllBatch() {
+      if (state.isBatchDownloading) return;
+
+      if (state.parsedFreights.length === 0) {
+        showToast('Nenhum frete para baixar.', 'warning');
+        return;
+      }
+
+      const btn = document.getElementById('btn-download-all');
+      const btnLabel = document.getElementById('batch-btn-label');
+      const total = state.parsedFreights.length;
+
+      state.isBatchDownloading = true;
+      btn.disabled = true;
+      showToast(`Iniciando download em lote de ${total} ${total === 1 ? 'imagem' : 'imagens'}...`, 'info');
+
+      const usedNames = new Map();
+
+      try {
+        for (let i = 0; i < total; i++) {
+          const canvas = document.getElementById(`story-canvas-${i}`);
+          if (!canvas) continue;
+
+          const freight = state.parsedFreights[i];
+          const baseKey = getFilenameForFreight(freight).toLowerCase();
+          const count = (usedNames.get(baseKey) || 0) + 1;
+          usedNames.set(baseKey, count);
+
+          const suffix = count > 1 ? ` (${count})` : '';
+          const filename = getFilenameForFreight(freight, suffix);
+
+          btnLabel.innerText = `Baixando ${i + 1}/${total}...`;
+          await triggerCanvasDownload(canvas, filename);
+
+          if (i < total - 1) {
+            await new Promise((r) => setTimeout(r, 400));
+          }
+        }
+
+        showToast(`Download em lote concluído (${total} ${total === 1 ? 'imagem salva' : 'imagens salvas'})!`, 'success');
+      } finally {
+        btnLabel.innerText = 'Baixar Todas em Lote';
+        btn.disabled = false;
+        state.isBatchDownloading = false;
+      }
+    }
+
+    // LIGHTBOX MODAL
+    function openLightbox(index) {
+      const canvas = document.getElementById(`story-canvas-${index}`);
+      if (!canvas) return;
+
+      const freight = state.parsedFreights[index];
+      const imgUrl = canvas.toDataURL('image/png');
+      
+      document.getElementById('modal-img').src = imgUrl;
+      document.getElementById('modal-title').innerText = `${freight.origem} ➜ ${freight.destino}`;
+      
+      const downloadBtn = document.getElementById('modal-btn-download');
+      downloadBtn.onclick = function() {
+        downloadSingleImage(index);
+      };
+
+      document.getElementById('lightbox-modal').classList.remove('hidden');
+      document.getElementById('lightbox-modal').classList.add('flex');
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox-modal').classList.add('hidden');
+      document.getElementById('lightbox-modal').classList.remove('flex');
+    }
+
+    function toggleHelpModal() {
+      const m = document.getElementById('help-modal');
+      if (m.classList.contains('hidden')) {
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+      } else {
+        m.classList.add('hidden');
+        m.classList.remove('flex');
+      }
+    }
+
+    // TOAST NOTIFICATIONS
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      let bg = "bg-slate-900 border-slate-700 text-slate-200";
+      if (type === 'success') bg = "bg-emerald-950 border-emerald-700 text-emerald-200";
+      if (type === 'warning') bg = "bg-amber-950 border-amber-700 text-amber-200";
+      if (type === 'error') bg = "bg-rose-950 border-rose-700 text-rose-200";
+
+      toast.className = `${bg} border px-4 py-3 rounded-xl text-xs font-semibold shadow-2xl flex items-center gap-2 transform transition-all duration-300 translate-y-4 opacity-0 pointer-events-auto`;
+      toast.innerHTML = `<span>${type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️'}</span> <span>${message}</span>`;
+
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-4', 'opacity-0');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+  </script>
+</body>
+</html>
